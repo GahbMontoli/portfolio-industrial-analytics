@@ -24,8 +24,11 @@ Nenhuma conta, tenant, workspace ou licença foi presumida.
    respectivas colunas numéricas.
 8. Importe o tema `powerbi\theme\industrial-analytics.json`.
 9. Adicione as medidas descritas em `CATALOGO_KPIS.md`.
-10. Reconcilie pelo menos uma medida de cada fato com o CSV de origem.
-11. Salve, feche, reabra e execute atualização completa antes do commit.
+10. Execute `scripts\Test-PortfolioBiKpis.ps1` e confira o relatório JSON de
+    reconciliação antes de criar as medidas.
+11. Reconcilie no Power BI pelo menos uma medida de cada fato com o mesmo valor
+    registrado pelo script, preservando filtros, unidade e granularidade.
+12. Salve, feche, reabra e execute atualização completa antes do commit.
 
 ## Relacionamentos mínimos do MVP
 

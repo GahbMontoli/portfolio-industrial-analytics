@@ -83,6 +83,7 @@ Depois consolide e valide as tabelas:
 ```powershell
 .\scripts\New-PortfolioBiDataset.ps1
 .\scripts\Test-PortfolioBiDataset.ps1
+.\scripts\Test-PortfolioBiKpis.ps1
 ```
 
 O diretório ignorado `data\curated` conterá onze CSVs e um manifesto com hash
@@ -97,3 +98,11 @@ contagem e hashes da cena e do CSV. O pacote atual possui 1.085 linhas de fatos,
 para representar uma planta real. As consultas em `power-query` são fontes M
 textuais auditáveis; elas ainda precisam ser aplicadas e validadas no Power BI
 Desktop antes de existir um PBIP/PBIX validado.
+
+O terceiro comando reconcilia 14 KPIs e contratos de unidade diretamente entre
+as quatro fontes registradas e os fatos curados. Ele verifica coerência temporal
+de OS, umidade relativa, cadência e margem de ponto de orvalho, identidades dos
+experimentos pareados e unidades do estudo de falhas. O resultado auditável é
+gravado no diretório ignorado como
+`data\curated\kpi-reconciliation.json`; consulte o
+[catálogo de KPIs](docs/CATALOGO_KPIS.md) para definições e limitações.

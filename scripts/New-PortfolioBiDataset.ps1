@@ -26,6 +26,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 $H3ObservationsPath = Join-Path $H3Root 'output\validation\h3-synthetic.csv'
 $H3ExperimentPath = Join-Path $H3Root 'output\validation-research\h3-experiment-observations.csv'
 $FaultStudyPath = Join-Path $SimulatorRoot 'artifacts\fault-study.csv'
+$FaultStudyManifestPath = [System.IO.Path]::ChangeExtension($FaultStudyPath, '.manifest.json')
 $CmmsExportDirectory = Join-Path $CmmsRoot 'artifacts\power-bi'
 $CmmsAssetsPath = Join-Path $CmmsExportDirectory 'dim_asset.csv'
 $CmmsWorkOrdersPath = Join-Path $CmmsExportDirectory 'fact_work_order.csv'
@@ -36,6 +37,7 @@ $Sources = @(
     $H3ObservationsPath,
     $H3ExperimentPath,
     $FaultStudyPath,
+    $FaultStudyManifestPath,
     $CmmsAssetsPath,
     $CmmsWorkOrdersPath,
     $CmmsChecksPath,
@@ -153,13 +155,32 @@ $H3Experiments = @(Import-Csv -LiteralPath $H3ExperimentPath -Delimiter ';' | Fo
     }
 })
 
-$FaultStudyObservedAt = (Get-Item -LiteralPath $FaultStudyPath).LastWriteTimeUtc.ToString('O')
-$FaultStudies = @(Import-Csv -LiteralPath $FaultStudyPath | ForEach-Object {
+$FaultStudySourceRows = @(Import-Csv -LiteralPath $FaultStudyPath)
+$FaultStudyManifest = Get-Content -LiteralPath $FaultStudyManifestPath -Raw |
+    ConvertFrom-Json -DateKind String
+$FaultStudyCsvHash = (Get-FileHash -LiteralPath $FaultStudyPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$FaultStudySourcePath = Join-Path $SimulatorRoot "samples\$($FaultStudyManifest.sourceId)"
+
+if ($FaultStudyManifest.schemaVersion -ne 1 -or
+    $FaultStudyManifest.projectId -ne 'industrial-simulator-3d' -or
+    $FaultStudyManifest.evidenceClass -ne 'synthetic' -or
+    [int]$FaultStudyManifest.rowCount -ne $FaultStudySourceRows.Count -or
+    $FaultStudyManifest.csvFile -ne (Split-Path -Leaf $FaultStudyPath) -or
+    $FaultStudyManifest.csvSha256 -ne $FaultStudyCsvHash -or
+    -not (Test-Path -LiteralPath $FaultStudySourcePath -PathType Leaf) -or
+    $FaultStudyManifest.sourceSha256 -ne
+        (Get-FileHash -LiteralPath $FaultStudySourcePath -Algorithm SHA256).Hash.ToLowerInvariant()) {
+    throw 'Manifesto do estudo de falhas incompatível ou com integridade inválida.'
+}
+
+$FaultStudyObservedAt = [DateTimeOffset]::Parse(
+    $FaultStudyManifest.exportedAtUtc).ToUniversalTime().ToString('O')
+$FaultStudies = @($FaultStudySourceRows | ForEach-Object {
     [pscustomobject]@{
         schema_version = 1
         project_id = 'industrial-simulator-3d'
-        run_id = 'filling-cell-fault-study-v1'
-        source_id = 'fault-study.csv'
+        run_id = $FaultStudyManifest.runId
+        source_id = $FaultStudyManifest.csvFile
         asset_id = $null
         observed_at_utc = $FaultStudyObservedAt
         ingested_at_utc = $IngestedAtUtc

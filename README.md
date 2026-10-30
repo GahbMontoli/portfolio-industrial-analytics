@@ -86,5 +86,6 @@ Depois consolide e valide as tabelas:
 ```
 
 O diretório ignorado `data\curated` conterá oito CSVs e um manifesto com hash
-SHA-256 das fontes. O pacote atual é inteiramente sintético e serve para
+SHA-256 das fontes. O consolidado também confere o manifesto do estudo de falhas,
+incluindo contagem e hashes da cena e do CSV. O pacote atual é inteiramente sintético e serve para
 desenvolver e testar o relatório, não para representar uma planta real.

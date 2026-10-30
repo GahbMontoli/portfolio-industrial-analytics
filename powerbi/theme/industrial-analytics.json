@@ -1,0 +1,16 @@
+{
+  "name": "Industrial Analytics",
+  "dataColors": ["#0B6E75", "#2E86AB", "#F18F01", "#C73E1D", "#6C757D", "#5C4D7D"],
+  "background": "#F7F9FB",
+  "foreground": "#172033",
+  "tableAccent": "#0B6E75",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [{"fontFamily": "Segoe UI", "fontSize": 12, "color": {"solid": {"color": "#172033"}}}],
+        "background": [{"color": {"solid": {"color": "#FFFFFF"}}, "transparency": 0}],
+        "border": [{"color": {"solid": {"color": "#D8E0E8"}}, "show": true}]
+      }
+    }
+  }
+}

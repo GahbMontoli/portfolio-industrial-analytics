@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gahbmontoli:portfolio-industrial-analytics:common-record:v1",
+  "title": "Portfolio Industrial Analytics - Common Record Envelope",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schemaVersion",
+    "projectId",
+    "runId",
+    "sourceId",
+    "observedAtUtc",
+    "ingestedAtUtc",
+    "evidenceClass",
+    "qualityStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "projectId": {
+      "type": "string",
+      "enum": ["h3-monitor", "industrial-simulator-3d", "copiloto-confiabilidade"]
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "assetId": {
+      "type": ["string", "null"],
+      "maxLength": 128
+    },
+    "locationId": {
+      "type": ["string", "null"],
+      "maxLength": 128
+    },
+    "scenarioId": {
+      "type": ["string", "null"],
+      "maxLength": 128
+    },
+    "observedAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ingestedAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidenceClass": {
+      "type": "string",
+      "enum": ["synthetic", "official_raw", "lab_observed", "field_observed", "derived"]
+    },
+    "qualityStatus": {
+      "type": "string",
+      "enum": ["valid", "warning", "rejected", "raw_unvalidated"]
+    },
+    "sourceUri": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
+    "sourceSha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "interpretationLimit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    }
+  }
+}

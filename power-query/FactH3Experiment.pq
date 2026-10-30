@@ -8,7 +8,7 @@ let
         Headers,
         {
             {"schema_version", Int64.Type}, {"project_id", type text},
-            {"run_id", type text}, {"source_id", type text},
+            {"run_id", type text}, {"source_id", type text}, {"asset_id", type text},
             {"observed_at_utc", type datetimezone}, {"ingested_at_utc", type datetimezone},
             {"evidence_class", type text}, {"quality_status", type text},
             {"replication", Int64.Type}, {"seed", Int64.Type},
@@ -20,7 +20,9 @@ let
             {"high_risk_events_avoided", Int64.Type},
             {"baseline_minimum_margin_c", type number},
             {"intervention_minimum_margin_c", type number},
-            {"minimum_margin_gain_c", type number}
+            {"minimum_margin_gain_c", type number},
+            {"evidence_key", type text}, {"source_key", type text},
+            {"observed_date_key", Int64.Type}, {"observed_time_basis", type text}
         },
         "en-US"
     )

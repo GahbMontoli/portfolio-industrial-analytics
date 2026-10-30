@@ -20,10 +20,12 @@ Nenhuma conta, tenant, workspace ou licença foi presumida.
    correspondente.
 5. Desative carregamento de consultas de staging, caso sejam adicionadas.
 6. Crie relacionamentos um-para-muitos das dimensões para os fatos.
-7. Importe o tema `powerbi\theme\industrial-analytics.json`.
-8. Adicione as medidas descritas em `CATALOGO_KPIS.md`.
-9. Reconcilie pelo menos uma medida de cada fato com o CSV de origem.
-10. Salve, feche, reabra e execute atualização completa antes do commit.
+7. Marque `DimDate[date]` como tabela de datas e ordene nomes de mês/dia pelas
+   respectivas colunas numéricas.
+8. Importe o tema `powerbi\theme\industrial-analytics.json`.
+9. Adicione as medidas descritas em `CATALOGO_KPIS.md`.
+10. Reconcilie pelo menos uma medida de cada fato com o CSV de origem.
+11. Salve, feche, reabra e execute atualização completa antes do commit.
 
 ## Relacionamentos mínimos do MVP
 
@@ -31,11 +33,27 @@ Nenhuma conta, tenant, workspace ou licença foi presumida.
 - `DimProject[project_id]` 1:* `FactH3Observation[project_id]`;
 - `DimProject[project_id]` 1:* `FactH3Experiment[project_id]`;
 - `DimProject[project_id]` 1:* `FactFaultStudy[project_id]`;
-- `DimAsset[asset_id]` 1:* `FactWorkOrder[asset_id]`.
+- `DimAsset[asset_id]` 1:* `FactWorkOrder[asset_id]`;
+- `DimDate[date_key]` 1:* `FactH3Observation[observed_date_key]`;
+- `DimDate[date_key]` 1:* `FactH3Experiment[observed_date_key]`;
+- `DimDate[date_key]` 1:* `FactFaultStudy[observed_date_key]`;
+- `DimDate[date_key]` 1:* `FactWorkOrder[opened_date_key]` (ativa);
+- `DimDate[date_key]` 1:* `FactWorkOrder[closed_date_key]` (inativa);
+- `DimEvidence[evidence_key]` 1:* cada uma das quatro tabelas fato;
+- `DimSource[source_key]` 1:* cada uma das quatro tabelas fato;
 - `FactWorkOrder[work_order_id]` 1:* `BridgeWorkOrderCheck[work_order_id]`;
 - `FactWorkOrder[work_order_id]` 1:* `BridgeWorkOrderPart[work_order_id]`.
 
-Use direção única da dimensão para o fato. Não conecte fatos diretamente.
+Use direção única da dimensão para o fato. Não conecte fatos diretamente. Não
+crie outra relação ativa entre `DimDate` e
+`FactWorkOrder[observed_date_key]`: essa coluna repete a data de abertura para
+cumprir o contrato comum. As chaves de evidência e fonte presentes nas pontes
+são de auditoria; relacioná-las ativamente junto ao caminho via ordem criaria
+ambiguidade.
+
+O timestamp de `FactH3Experiment` usa a última gravação UTC do arquivo como
+proxy de disponibilidade do lote, não o instante real de cada replicação. Exiba
+essa limitação quando o relatório usar esse campo temporal.
 
 ## Atualização e publicação
 

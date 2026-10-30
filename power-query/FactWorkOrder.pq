@@ -16,7 +16,10 @@ let
             {"duration_hours", type number}, {"status", type text},
             {"priority", type text}, {"failure_code", type text}, {"title", type text},
             {"has_cause", type logical}, {"has_resolution", type logical},
-            {"checks_count", Int64.Type}, {"parts_count", Int64.Type}
+            {"checks_count", Int64.Type}, {"parts_count", Int64.Type},
+            {"evidence_key", type text}, {"source_key", type text},
+            {"observed_date_key", Int64.Type}, {"observed_time_basis", type text},
+            {"opened_date_key", Int64.Type}, {"closed_date_key", Int64.Type}
         },
         "en-US"
     )

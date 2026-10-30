@@ -8,7 +8,7 @@ let
         Headers,
         {
             {"schema_version", Int64.Type}, {"project_id", type text},
-            {"run_id", type text}, {"source_id", type text},
+            {"run_id", type text}, {"source_id", type text}, {"asset_id", type text},
             {"observed_at_utc", type datetimezone}, {"ingested_at_utc", type datetimezone},
             {"evidence_class", type text}, {"quality_status", type text},
             {"scenario_id", type text}, {"expectation_met", type logical},
@@ -19,7 +19,9 @@ let
             {"valve_open_at_capacity_steps", Int64.Type},
             {"valve_command_divergence_steps", Int64.Type},
             {"final_valve_command", type logical},
-            {"final_valve_effective_state", type logical}, {"observation", type text}
+            {"final_valve_effective_state", type logical}, {"observation", type text},
+            {"evidence_key", type text}, {"source_key", type text},
+            {"observed_date_key", Int64.Type}, {"observed_time_basis", type text}
         },
         "en-US"
     )

@@ -85,7 +85,15 @@ Depois consolide e valide as tabelas:
 .\scripts\Test-PortfolioBiDataset.ps1
 ```
 
-O diretório ignorado `data\curated` conterá oito CSVs e um manifesto com hash
-SHA-256 das fontes. O consolidado também confere o manifesto do estudo de falhas,
-incluindo contagem e hashes da cena e do CSV. O pacote atual é inteiramente sintético e serve para
-desenvolver e testar o relatório, não para representar uma planta real.
+O diretório ignorado `data\curated` conterá onze CSVs e um manifesto com hash
+SHA-256 das fontes. Além das quatro tabelas fato, duas pontes e dimensões de
+projeto e ativo, o pacote materializa `DimDate`, `DimEvidence` e `DimSource`.
+A dimensão de fonte usa identificadores portáveis, sem publicar caminhos
+absolutos da máquina, e versiona cada origem por seu SHA-256.
+
+O consolidado também confere o manifesto do estudo de falhas, incluindo
+contagem e hashes da cena e do CSV. O pacote atual possui 1.085 linhas de fatos,
+é inteiramente sintético e serve para desenvolver e testar o relatório, não
+para representar uma planta real. As consultas em `power-query` são fontes M
+textuais auditáveis; elas ainda precisam ser aplicadas e validadas no Power BI
+Desktop antes de existir um PBIP/PBIX validado.

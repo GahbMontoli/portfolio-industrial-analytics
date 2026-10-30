@@ -11,7 +11,8 @@ let
             {"run_id", type text}, {"source_id", type text},
             {"work_order_id", type text}, {"ordinal", Int64.Type},
             {"part_text", type text}, {"ingested_at_utc", type datetimezone},
-            {"evidence_class", type text}, {"quality_status", type text}
+            {"evidence_class", type text}, {"quality_status", type text},
+            {"evidence_key", type text}, {"source_key", type text}
         },
         "en-US"
     )

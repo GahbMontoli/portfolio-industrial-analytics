@@ -32,6 +32,8 @@ Nenhuma conta, tenant, workspace ou licença foi presumida.
 - `DimProject[project_id]` 1:* `FactH3Experiment[project_id]`;
 - `DimProject[project_id]` 1:* `FactFaultStudy[project_id]`;
 - `DimAsset[asset_id]` 1:* `FactWorkOrder[asset_id]`.
+- `FactWorkOrder[work_order_id]` 1:* `BridgeWorkOrderCheck[work_order_id]`;
+- `FactWorkOrder[work_order_id]` 1:* `BridgeWorkOrderPart[work_order_id]`.
 
 Use direção única da dimensão para o fato. Não conecte fatos diretamente.
 

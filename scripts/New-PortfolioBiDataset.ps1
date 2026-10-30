@@ -26,8 +26,22 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 $H3ObservationsPath = Join-Path $H3Root 'output\validation\h3-synthetic.csv'
 $H3ExperimentPath = Join-Path $H3Root 'output\validation-research\h3-experiment-observations.csv'
 $FaultStudyPath = Join-Path $SimulatorRoot 'artifacts\fault-study.csv'
-$CmmsPath = Join-Path $CmmsRoot 'src\AssistentePatinho.App\sample-cmms-data.json'
-$Sources = @($H3ObservationsPath, $H3ExperimentPath, $FaultStudyPath, $CmmsPath)
+$CmmsExportDirectory = Join-Path $CmmsRoot 'artifacts\power-bi'
+$CmmsAssetsPath = Join-Path $CmmsExportDirectory 'dim_asset.csv'
+$CmmsWorkOrdersPath = Join-Path $CmmsExportDirectory 'fact_work_order.csv'
+$CmmsChecksPath = Join-Path $CmmsExportDirectory 'bridge_work_order_check.csv'
+$CmmsPartsPath = Join-Path $CmmsExportDirectory 'bridge_work_order_part.csv'
+$CmmsManifestPath = Join-Path $CmmsExportDirectory 'manifest.json'
+$Sources = @(
+    $H3ObservationsPath,
+    $H3ExperimentPath,
+    $FaultStudyPath,
+    $CmmsAssetsPath,
+    $CmmsWorkOrdersPath,
+    $CmmsChecksPath,
+    $CmmsPartsPath,
+    $CmmsManifestPath
+)
 
 foreach ($source in $Sources) {
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
@@ -61,55 +75,29 @@ $Projects = @(
     [pscustomobject]@{ project_id = 'copiloto-confiabilidade'; project_name = 'Copiloto de Confiabilidade'; domain = 'Manutenção e CMMS' }
 )
 
-$Cmms = Get-Content -LiteralPath $CmmsPath -Raw | ConvertFrom-Json -DateKind String
-$Assets = @($Cmms.assets | ForEach-Object {
-    [pscustomobject]@{
-        project_id = 'copiloto-confiabilidade'
-        asset_id = $_.id
-        tag = $_.tag
-        asset_name = $_.name
-        category = $_.category
-        model = $_.model
-        location = $_.location
-        criticality = $_.criticality
-        evidence_class = 'synthetic'
-        quality_status = 'valid'
-        schema_version = 1
-    }
-})
+$Assets = @(Import-Csv -LiteralPath $CmmsAssetsPath)
+$WorkOrders = @(Import-Csv -LiteralPath $CmmsWorkOrdersPath)
+$WorkOrderChecks = @(Import-Csv -LiteralPath $CmmsChecksPath)
+$WorkOrderParts = @(Import-Csv -LiteralPath $CmmsPartsPath)
+$CmmsManifest = Get-Content -LiteralPath $CmmsManifestPath -Raw | ConvertFrom-Json
 
-$WorkOrders = @($Cmms.workOrders | ForEach-Object {
-    $opened = [DateTimeOffset]::Parse($_.openedAt).ToUniversalTime()
-    $closed = if ($null -ne $_.closedAt) {
-        [DateTimeOffset]::Parse($_.closedAt).ToUniversalTime()
-    } else {
-        $null
+if ($CmmsManifest.schemaVersion -ne 1 -or
+    $CmmsManifest.projectId -ne 'copiloto-confiabilidade' -or
+    $CmmsManifest.evidenceClass -ne 'synthetic') {
+    throw 'Manifesto CMMS incompatível com o contrato esperado.'
+}
+
+$CmmsExpectedCounts = [ordered]@{
+    dimAsset = $Assets.Count
+    factWorkOrder = $WorkOrders.Count
+    bridgeWorkOrderCheck = $WorkOrderChecks.Count
+    bridgeWorkOrderPart = $WorkOrderParts.Count
+}
+foreach ($entry in $CmmsExpectedCounts.GetEnumerator()) {
+    if ([int]$CmmsManifest.tables.($entry.Key) -ne $entry.Value) {
+        throw "Contagem CMMS divergente em $($entry.Key): manifesto=$($CmmsManifest.tables.($entry.Key)), arquivo=$($entry.Value)."
     }
-    [pscustomobject]@{
-        schema_version = 1
-        project_id = 'copiloto-confiabilidade'
-        run_id = 'cmms-sample-v1'
-        source_id = 'sample-cmms-data.json'
-        asset_id = $_.assetId
-        observed_at_utc = $opened.ToString('O')
-        ingested_at_utc = $IngestedAtUtc
-        evidence_class = 'synthetic'
-        quality_status = 'valid'
-        work_order_id = $_.id
-        opened_at_utc = $opened.ToString('O')
-        closed_at_utc = if ($null -ne $closed) { $closed.ToString('O') } else { $null }
-        is_closed = $null -ne $closed
-        duration_hours = if ($null -ne $closed) { [math]::Round(($closed - $opened).TotalHours, 3) } else { $null }
-        status = $_.status
-        priority = $_.priority
-        failure_code = $_.failureCode
-        title = $_.title
-        has_cause = -not [string]::IsNullOrWhiteSpace($_.cause)
-        has_resolution = -not [string]::IsNullOrWhiteSpace($_.resolution)
-        checks_count = @($_.checks).Count
-        parts_count = @($_.parts).Count
-    }
-})
+}
 
 $H3Observations = @(Import-Csv -LiteralPath $H3ObservationsPath -Delimiter ';' | ForEach-Object {
     $timestamp = [DateTimeOffset]::Parse($_.timestamp).ToUniversalTime()
@@ -196,6 +184,8 @@ $Outputs = [ordered]@{}
 $Outputs.dim_project = Export-Table -Rows $Projects -FileName 'dim_project.csv'
 $Outputs.dim_asset = Export-Table -Rows $Assets -FileName 'dim_asset.csv'
 $Outputs.fact_work_order = Export-Table -Rows $WorkOrders -FileName 'fact_work_order.csv'
+$Outputs.bridge_work_order_check = Export-Table -Rows $WorkOrderChecks -FileName 'bridge_work_order_check.csv'
+$Outputs.bridge_work_order_part = Export-Table -Rows $WorkOrderParts -FileName 'bridge_work_order_part.csv'
 $Outputs.fact_h3_observation = Export-Table -Rows $H3Observations -FileName 'fact_h3_observation.csv'
 $Outputs.fact_h3_experiment = Export-Table -Rows $H3Experiments -FileName 'fact_h3_experiment.csv'
 $Outputs.fact_fault_study = Export-Table -Rows $FaultStudies -FileName 'fact_fault_study.csv'
@@ -214,6 +204,8 @@ $Manifest = [ordered]@{
         dim_project = $Projects.Count
         dim_asset = $Assets.Count
         fact_work_order = $WorkOrders.Count
+        bridge_work_order_check = $WorkOrderChecks.Count
+        bridge_work_order_part = $WorkOrderParts.Count
         fact_h3_observation = $H3Observations.Count
         fact_h3_experiment = $H3Experiments.Count
         fact_fault_study = $FaultStudies.Count

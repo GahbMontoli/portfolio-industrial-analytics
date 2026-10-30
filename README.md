@@ -72,6 +72,12 @@ dotnet run --project ..\simulador-industrial\src\SimuladorIndustrial.Cli -c Rele
   --output ..\simulador-industrial\artifacts\fault-study.csv
 ```
 
+Gere também a exportação tabular do Copiloto de Confiabilidade:
+
+```powershell
+..\assistente-patinho\Exportar-PowerBI.ps1
+```
+
 Depois consolide e valide as tabelas:
 
 ```powershell
@@ -79,6 +85,6 @@ Depois consolide e valide as tabelas:
 .\scripts\Test-PortfolioBiDataset.ps1
 ```
 
-O diretório ignorado `data\curated` conterá seis CSVs e um manifesto com hash
-SHA-256 das quatro fontes. O pacote atual é inteiramente sintético e serve para
+O diretório ignorado `data\curated` conterá oito CSVs e um manifesto com hash
+SHA-256 das fontes. O pacote atual é inteiramente sintético e serve para
 desenvolver e testar o relatório, não para representar uma planta real.

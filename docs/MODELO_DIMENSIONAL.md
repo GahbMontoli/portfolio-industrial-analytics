@@ -61,6 +61,9 @@ Grão: uma ordem de serviço.
 
 Medidas-base: abertura, encerramento, status, prioridade, idade e duração.
 
+As tabelas `BridgeWorkOrderCheck` e `BridgeWorkOrderPart` preservam listas
+multivaloradas por ordem e ordinal, sem concatenar itens em uma única célula.
+
 ### `FactDataQuality`
 
 Grão: uma regra de qualidade por lote/fonte.

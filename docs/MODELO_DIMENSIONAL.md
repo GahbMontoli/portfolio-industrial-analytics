@@ -80,6 +80,10 @@ Grão: uma ordem de serviço.
 
 Medidas-base: abertura, encerramento, status, prioridade, idade e duração.
 
+`backlog_age_hours` contém horas corridas entre abertura e instante da
+exportação somente para ordens abertas. Não representa horas trabalhadas,
+indisponibilidade nem MTTR; fica vazio em ordens concluídas.
+
 `opened_date_key` representa a data de abertura e `closed_date_key` a data de
 encerramento, quando existente. A coluna comum `observed_date_key` também
 representa a abertura e é preservada para manter o contrato analítico comum.

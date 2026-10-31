@@ -1,0 +1,126 @@
+// Consulta canônica para DAX Query View.
+// As medidas são query-scoped até "Update model with changes" no Power BI.
+
+DEFINE
+    /// Contagem de ordens sintéticas ainda abertas.
+    // @metric-id work_orders_open
+    MEASURE 'FactWorkOrder'[Ordens Abertas] =
+        CALCULATE(
+            COUNTROWS('FactWorkOrder'),
+            KEEPFILTERS('FactWorkOrder'[is_closed] = FALSE())
+        )
+
+    /// Contagem de ordens sintéticas encerradas.
+    // @metric-id work_orders_closed
+    MEASURE 'FactWorkOrder'[Ordens Encerradas] =
+        CALCULATE(
+            COUNTROWS('FactWorkOrder'),
+            KEEPFILTERS('FactWorkOrder'[is_closed] = TRUE())
+        )
+
+    /// Tempo calendário médio entre abertura e encerramento; não é tempo ativo de reparo.
+    // @metric-id mttr_observed_hours
+    MEASURE 'FactWorkOrder'[MTTR Observado (h)] =
+        CALCULATE(
+            AVERAGE('FactWorkOrder'[duration_hours]),
+            KEEPFILTERS('FactWorkOrder'[is_closed] = TRUE())
+        )
+
+    /// Razão de encerramentos com data, causa e resolução preenchidas.
+    // @metric-id closure_completeness_ratio
+    MEASURE 'FactWorkOrder'[Completude de Encerramento (%)] =
+        VAR Encerradas =
+            CALCULATE(
+                COUNTROWS('FactWorkOrder'),
+                KEEPFILTERS('FactWorkOrder'[is_closed] = TRUE())
+            )
+        VAR Completas =
+            CALCULATE(
+                COUNTROWS('FactWorkOrder'),
+                KEEPFILTERS('FactWorkOrder'[is_closed] = TRUE()),
+                KEEPFILTERS('FactWorkOrder'[has_cause] = TRUE()),
+                KEEPFILTERS('FactWorkOrder'[has_resolution] = TRUE()),
+                KEEPFILTERS(NOT ISBLANK('FactWorkOrder'[closed_at_utc]))
+            )
+        RETURN
+            DIVIDE(Completas, Encerradas)
+
+    /// Quantidade de checks sintéticos vinculados às ordens.
+    // @metric-id work_order_checks
+    MEASURE 'BridgeWorkOrderCheck'[Checks Vinculados] =
+        COUNTROWS('BridgeWorkOrderCheck')
+
+    /// Quantidade de peças sintéticas vinculadas às ordens.
+    // @metric-id work_order_parts
+    MEASURE 'BridgeWorkOrderPart'[Peças Vinculadas] =
+        COUNTROWS('BridgeWorkOrderPart')
+
+    /// Exposição simulada em risco High ou Critical.
+    // @metric-id h3_high_risk_hours
+    MEASURE 'FactH3Observation'[Horas em Risco H3 (h)] =
+        SUMX(
+            FILTER(
+                'FactH3Observation',
+                'FactH3Observation'[risk_level] IN { "High", "Critical" }
+            ),
+            DIVIDE('FactH3Observation'[interval_minutes], 60.0)
+        )
+
+    /// Menor margem simulada entre superfície e ponto de orvalho.
+    // @metric-id h3_minimum_margin_c
+    MEASURE 'FactH3Observation'[Margem Mínima H3 (°C)] =
+        MIN('FactH3Observation'[dew_point_margin_c])
+
+    /// Média da diferença referência menos intervenção por réplica.
+    // @metric-id h3_mean_exposure_avoided_hours
+    MEASURE 'FactH3Experiment'[Diferença Pareada Média de Exposição (h/réplica)] =
+        AVERAGE('FactH3Experiment'[exposure_hours_avoided])
+
+    /// Soma de eventos simulados evitados nas réplicas.
+    // @metric-id h3_avoided_high_risk_events
+    MEASURE 'FactH3Experiment'[Eventos de Alto Risco Evitados] =
+        SUM('FactH3Experiment'[high_risk_events_avoided])
+
+    /// Média do ganho sintético da margem mínima por réplica.
+    // @metric-id h3_mean_minimum_margin_gain_c
+    MEASURE 'FactH3Experiment'[Ganho Médio de Margem Mínima (°C/réplica)] =
+        AVERAGE('FactH3Experiment'[minimum_margin_gain_c])
+
+    /// Razão de cenários cuja resposta correspondeu à expectativa do teste.
+    // @metric-id fault_expectation_ratio
+    MEASURE 'FactFaultStudy'[Taxa de Expectativa (%)] =
+        DIVIDE(
+            CALCULATE(
+                COUNTROWS('FactFaultStudy'),
+                KEEPFILTERS('FactFaultStudy'[expectation_met] = TRUE())
+            ),
+            COUNTROWS('FactFaultStudy')
+        )
+
+    /// Soma de passos com divergência entre comando e estado efetivo.
+    // @metric-id fault_divergence_steps
+    MEASURE 'FactFaultStudy'[Passos de Divergência] =
+        SUM('FactFaultStudy'[valve_command_divergence_steps])
+
+    /// Maior desvio sintético entre volume físico e indicado.
+    // @metric-id fault_maximum_sensor_deviation_liters
+    MEASURE 'FactFaultStudy'[Desvio Máximo de Sensor (L)] =
+        MAX('FactFaultStudy'[maximum_sensor_deviation_liters])
+
+EVALUATE
+    ROW(
+        "work_orders_open", [Ordens Abertas],
+        "work_orders_closed", [Ordens Encerradas],
+        "mttr_observed_hours", [MTTR Observado (h)],
+        "closure_completeness_ratio", [Completude de Encerramento (%)],
+        "work_order_checks", [Checks Vinculados],
+        "work_order_parts", [Peças Vinculadas],
+        "h3_high_risk_hours", [Horas em Risco H3 (h)],
+        "h3_minimum_margin_c", [Margem Mínima H3 (°C)],
+        "h3_mean_exposure_avoided_hours", [Diferença Pareada Média de Exposição (h/réplica)],
+        "h3_avoided_high_risk_events", [Eventos de Alto Risco Evitados],
+        "h3_mean_minimum_margin_gain_c", [Ganho Médio de Margem Mínima (°C/réplica)],
+        "fault_expectation_ratio", [Taxa de Expectativa (%)],
+        "fault_divergence_steps", [Passos de Divergência],
+        "fault_maximum_sensor_deviation_liters", [Desvio Máximo de Sensor (L)]
+    )

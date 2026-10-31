@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "artifactKind": "dax-query-measure-contract",
+  "validationScope": "static_contract_only",
+  "canonicalQuery": "IndustrialMeasures.dax",
+  "reconciliationReport": "data/curated/kpi-reconciliation.json",
+  "measures": [
+    {
+      "metricId": "work_orders_open",
+      "measureName": "Ordens Abertas",
+      "homeTable": "FactWorkOrder",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "Manutenção",
+      "description": "Contagem de ordens sintéticas ainda abertas.",
+      "interpretationLimit": "Contagem sintética; não representa backlog de uma planta real.",
+      "tableDependencies": ["FactWorkOrder"],
+      "columnDependencies": ["FactWorkOrder.is_closed"]
+    },
+    {
+      "metricId": "work_orders_closed",
+      "measureName": "Ordens Encerradas",
+      "homeTable": "FactWorkOrder",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "Manutenção",
+      "description": "Contagem de ordens sintéticas encerradas.",
+      "interpretationLimit": "Contagem sintética; não comprova desempenho operacional.",
+      "tableDependencies": ["FactWorkOrder"],
+      "columnDependencies": ["FactWorkOrder.is_closed"]
+    },
+    {
+      "metricId": "mttr_observed_hours",
+      "measureName": "MTTR Observado (h)",
+      "homeTable": "FactWorkOrder",
+      "unit": "h",
+      "formatString": "0.00 \"h\"",
+      "displayFolder": "Manutenção",
+      "description": "Tempo calendário médio das ordens encerradas.",
+      "interpretationLimit": "Tempo calendário entre abertura e encerramento; não é tempo ativo de reparo.",
+      "tableDependencies": ["FactWorkOrder"],
+      "columnDependencies": ["FactWorkOrder.duration_hours", "FactWorkOrder.is_closed"]
+    },
+    {
+      "metricId": "closure_completeness_ratio",
+      "measureName": "Completude de Encerramento (%)",
+      "homeTable": "FactWorkOrder",
+      "unit": "ratio",
+      "formatString": "0.0%",
+      "displayFolder": "Manutenção",
+      "description": "Razão de encerramentos com data, causa e resolução preenchidas.",
+      "interpretationLimit": "Mede preenchimento dos registros, não a qualidade técnica da solução.",
+      "tableDependencies": ["FactWorkOrder"],
+      "columnDependencies": [
+        "FactWorkOrder.closed_at_utc",
+        "FactWorkOrder.has_cause",
+        "FactWorkOrder.has_resolution",
+        "FactWorkOrder.is_closed"
+      ]
+    },
+    {
+      "metricId": "work_order_checks",
+      "measureName": "Checks Vinculados",
+      "homeTable": "BridgeWorkOrderCheck",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "Manutenção",
+      "description": "Quantidade de checks sintéticos vinculados às ordens.",
+      "interpretationLimit": "Quantidade sintética de itens; não comprova execução em campo.",
+      "tableDependencies": ["BridgeWorkOrderCheck"],
+      "columnDependencies": []
+    },
+    {
+      "metricId": "work_order_parts",
+      "measureName": "Peças Vinculadas",
+      "homeTable": "BridgeWorkOrderPart",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "Manutenção",
+      "description": "Quantidade de peças sintéticas vinculadas às ordens.",
+      "interpretationLimit": "Quantidade sintética; não representa consumo real de estoque.",
+      "tableDependencies": ["BridgeWorkOrderPart"],
+      "columnDependencies": []
+    },
+    {
+      "metricId": "h3_high_risk_hours",
+      "measureName": "Horas em Risco H3 (h)",
+      "homeTable": "FactH3Observation",
+      "unit": "h",
+      "formatString": "0.00 \"h\"",
+      "displayFolder": "H3 | Observações",
+      "description": "Exposição simulada em risco High ou Critical.",
+      "interpretationLimit": "Limiar experimental; simulação não comprova condensação nem falha em campo.",
+      "tableDependencies": ["FactH3Observation"],
+      "columnDependencies": ["FactH3Observation.interval_minutes", "FactH3Observation.risk_level"]
+    },
+    {
+      "metricId": "h3_minimum_margin_c",
+      "measureName": "Margem Mínima H3 (°C)",
+      "homeTable": "FactH3Observation",
+      "unit": "°C",
+      "formatString": "0.000 \"°C\"",
+      "displayFolder": "H3 | Observações",
+      "description": "Menor margem simulada entre superfície e ponto de orvalho.",
+      "interpretationLimit": "Margem simulada; não substitui sensor calibrado nem inspeção de campo.",
+      "tableDependencies": ["FactH3Observation"],
+      "columnDependencies": ["FactH3Observation.dew_point_margin_c"]
+    },
+    {
+      "metricId": "h3_mean_exposure_avoided_hours",
+      "measureName": "Diferença Pareada Média de Exposição (h/réplica)",
+      "homeTable": "FactH3Experiment",
+      "unit": "h/replication",
+      "formatString": "0.000 \"h/réplica\"",
+      "displayFolder": "H3 | Experimentos",
+      "description": "Média da diferença referência menos intervenção por réplica.",
+      "interpretationLimit": "Diferença válida somente dentro do modelo sintético; não é efeito causal em campo.",
+      "tableDependencies": ["FactH3Experiment"],
+      "columnDependencies": ["FactH3Experiment.exposure_hours_avoided"]
+    },
+    {
+      "metricId": "h3_avoided_high_risk_events",
+      "measureName": "Eventos de Alto Risco Evitados",
+      "homeTable": "FactH3Experiment",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "H3 | Experimentos",
+      "description": "Soma de eventos simulados evitados nas réplicas.",
+      "interpretationLimit": "Contagem de eventos simulados; depende da frequência e da regra experimental.",
+      "tableDependencies": ["FactH3Experiment"],
+      "columnDependencies": ["FactH3Experiment.high_risk_events_avoided"]
+    },
+    {
+      "metricId": "h3_mean_minimum_margin_gain_c",
+      "measureName": "Ganho Médio de Margem Mínima (°C/réplica)",
+      "homeTable": "FactH3Experiment",
+      "unit": "°C/replication",
+      "formatString": "0.000 \"°C/réplica\"",
+      "displayFolder": "H3 | Experimentos",
+      "description": "Média do ganho sintético da margem mínima por réplica.",
+      "interpretationLimit": "Resultado do modelo sintético; não substitui ensaio de laboratório ou campo.",
+      "tableDependencies": ["FactH3Experiment"],
+      "columnDependencies": ["FactH3Experiment.minimum_margin_gain_c"]
+    },
+    {
+      "metricId": "fault_expectation_ratio",
+      "measureName": "Taxa de Expectativa (%)",
+      "homeTable": "FactFaultStudy",
+      "unit": "ratio",
+      "formatString": "0.0%",
+      "displayFolder": "Simulador",
+      "description": "Razão de cenários cuja resposta correspondeu à expectativa do teste.",
+      "interpretationLimit": "Valida respostas esperadas do software; não valida PLC, rede ou hardware real.",
+      "tableDependencies": ["FactFaultStudy"],
+      "columnDependencies": ["FactFaultStudy.expectation_met"]
+    },
+    {
+      "metricId": "fault_divergence_steps",
+      "measureName": "Passos de Divergência",
+      "homeTable": "FactFaultStudy",
+      "unit": "count",
+      "formatString": "0",
+      "displayFolder": "Simulador",
+      "description": "Soma de passos com divergência entre comando e estado efetivo.",
+      "interpretationLimit": "Divergência sintética pode ser intencional no cenário de falha.",
+      "tableDependencies": ["FactFaultStudy"],
+      "columnDependencies": ["FactFaultStudy.valve_command_divergence_steps"]
+    },
+    {
+      "metricId": "fault_maximum_sensor_deviation_liters",
+      "measureName": "Desvio Máximo de Sensor (L)",
+      "homeTable": "FactFaultStudy",
+      "unit": "L",
+      "formatString": "0.000 \"L\"",
+      "displayFolder": "Simulador",
+      "description": "Maior desvio sintético entre volume físico e indicado.",
+      "interpretationLimit": "Valor sintético; não representa calibração ou incerteza de instrumento real.",
+      "tableDependencies": ["FactFaultStudy"],
+      "columnDependencies": ["FactFaultStudy.maximum_sensor_deviation_liters"]
+    }
+  ]
+}

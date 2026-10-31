@@ -2,13 +2,22 @@
 
 ## Estado atual
 
-O pacote tabular e as consultas Power Query estão prontos. Power BI Desktop não
-foi localizado no ambiente durante a validação de 30/10/2026. As consultas M
-ainda precisam ser aplicadas e verificadas no Power BI Desktop antes de um
-projeto PBIP/TMDL ser versionado.
+O pacote tabular, as consultas Power Query, a consulta DAX canônica e o contrato
+de 14 medidas estão prontos. Power BI Desktop não foi localizado no ambiente nas
+validações de 30 e 31/10/2026. As consultas ainda precisam ser executadas no
+Desktop antes de um projeto PBIP/TMDL ser versionado.
 
 O Power BI Service também exige autenticação com email corporativo ou acadêmico.
 Nenhuma conta, tenant, workspace ou licença foi presumida.
+
+| Camada | Estado comprovado |
+| --- | --- |
+| esquema e dados curados | validado localmente por scripts |
+| 14 KPIs | reconciliados fonte↔fato com unidade e tolerância |
+| DAX | contratos, referências, formatos e aliases validados estaticamente |
+| execução DAX no Desktop | não realizada |
+| atualização do modelo semântico | não aplicada |
+| PBIP/TMDL | não criado |
 
 ## Criar o projeto
 
@@ -23,12 +32,17 @@ Nenhuma conta, tenant, workspace ou licença foi presumida.
 7. Marque `DimDate[date]` como tabela de datas e ordene nomes de mês/dia pelas
    respectivas colunas numéricas.
 8. Importe o tema `powerbi\theme\industrial-analytics.json`.
-9. Adicione as medidas descritas em `CATALOGO_KPIS.md`.
-10. Execute `scripts\Test-PortfolioBiKpis.ps1` e confira o relatório JSON de
-    reconciliação antes de criar as medidas.
-11. Reconcilie no Power BI pelo menos uma medida de cada fato com o mesmo valor
+9. Execute `scripts\Test-PortfolioBiKpis.ps1` e
+   `scripts\Test-PortfolioBiMeasures.ps1` e confira os dois relatórios JSON.
+10. Abra a DAX Query View e execute
+    `powerbi\measures\IndustrialMeasures.dax`; as medidas em `DEFINE MEASURE`
+    permanecem limitadas à consulta nesse momento.
+11. Compare os 14 aliases retornados com `kpi-reconciliation.json`.
+12. Somente depois da comparação, use `Update model with changes` e aplique
+    formatos e pastas de `measure-contracts.json`.
+13. Reconcilie no Power BI pelo menos uma medida de cada fato com o mesmo valor
     registrado pelo script, preservando filtros, unidade e granularidade.
-12. Salve, feche, reabra e execute atualização completa antes do commit.
+14. Salve, feche, reabra e execute atualização completa antes do commit.
 
 ## Relacionamentos mínimos do MVP
 

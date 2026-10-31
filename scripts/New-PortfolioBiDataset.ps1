@@ -154,10 +154,17 @@ $WorkOrderChecks = @(Import-Csv -LiteralPath $CmmsChecksPath)
 $WorkOrderParts = @(Import-Csv -LiteralPath $CmmsPartsPath)
 $CmmsManifest = Get-Content -LiteralPath $CmmsManifestPath -Raw | ConvertFrom-Json
 
-if ($CmmsManifest.schemaVersion -ne 1 -or
+if ([int]$CmmsManifest.schemaVersion -ne 2 -or
     $CmmsManifest.projectId -ne 'copiloto-confiabilidade' -or
     $CmmsManifest.evidenceClass -ne 'synthetic') {
     throw 'Manifesto CMMS incompatível com o contrato esperado.'
+}
+
+$CmmsRows = @($Assets) + @($WorkOrders) + @($WorkOrderChecks) + @($WorkOrderParts)
+if (@($CmmsRows | Where-Object {
+    [int]$_.schema_version -ne [int]$CmmsManifest.schemaVersion
+}).Count -gt 0) {
+    throw 'Versão de esquema das tabelas CMMS diverge do manifesto.'
 }
 
 $CmmsExpectedCounts = [ordered]@{
@@ -415,7 +422,7 @@ $SourceRows = @(
         source_locator = Get-RelativeSourceLocator $CmmsRawSourcePath
         source_sha256 = $CmmsRawSourceHash
         source_version = "sha256:$CmmsRawSourceHash"
-        schema_version = 1
+        schema_version = [int]$CmmsManifest.schemaVersion
         evidence_class = 'synthetic'
         license_status = 'not_evaluated'
         interpretation_limit = $CmmsManifest.evidenceLimit

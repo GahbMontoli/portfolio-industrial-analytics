@@ -20,48 +20,16 @@ confiabilidade de hardware ou resultado de manutenção em campo.
 | Checks vinculados | contagem de linhas da ponte | sem filtro | não comprova execução do check em campo |
 | Peças vinculadas | contagem de linhas da ponte | sem filtro | não representa consumo real de estoque |
 
-Especificação DAX compatível com as colunas atuais:
+As fórmulas canônicas estão em
+[`IndustrialMeasures.dax`](../powerbi/measures/IndustrialMeasures.dax), com
+metadados e limites em
+[`measure-contracts.json`](../powerbi/measures/measure-contracts.json).
 
-```DAX
-Ordens Abertas =
-CALCULATE(
-    COUNTROWS(FactWorkOrder),
-    FactWorkOrder[is_closed] = FALSE()
-)
-
-Ordens Encerradas =
-CALCULATE(
-    COUNTROWS(FactWorkOrder),
-    FactWorkOrder[is_closed] = TRUE()
-)
-
-MTTR Observado (h) =
-CALCULATE(
-    AVERAGE(FactWorkOrder[duration_hours]),
-    FactWorkOrder[is_closed] = TRUE()
-)
-
-Completude de Encerramento (%) =
-VAR Encerradas =
-    CALCULATE(
-        COUNTROWS(FactWorkOrder),
-        FactWorkOrder[is_closed] = TRUE()
-    )
-VAR Completas =
-    CALCULATE(
-        COUNTROWS(FactWorkOrder),
-        FactWorkOrder[is_closed] = TRUE(),
-        FactWorkOrder[has_cause] = TRUE(),
-        FactWorkOrder[has_resolution] = TRUE(),
-        NOT ISBLANK(FactWorkOrder[closed_at_utc])
-    )
-RETURN
-    DIVIDE(Completas, Encerradas)
-```
-
-`Backlog por idade` permanece pendente até existir uma data de corte/snapshot
-versionada. `Recorrência` permanece pendente até a janela e a regra de
-agrupamento serem formalizadas; similaridade não confirma a mesma causa.
+O Copiloto v2 já fornece `backlog_age_hours` com data de corte versionada, mas a
+medida de faixa etária ainda não integra este conjunto de 14 KPIs: primeiro ela
+deve ganhar regra de agrupamento e reconciliação fonte↔fato. `Recorrência`
+permanece pendente até a janela e a regra de agrupamento serem formalizadas;
+similaridade não confirma a mesma causa.
 
 ## H3: observações sintéticas
 
@@ -69,20 +37,6 @@ agrupamento serem formalizadas; similaridade não confirma a mesma causa.
 | --- | --- | --- | --- |
 | Horas em risco H3 | soma de `interval_minutes` / 60, em horas | `risk_level` em `High` ou `Critical` | limiar experimental |
 | Margem mínima H3 | mínimo de `dew_point_margin_c`, em °C | contexto selecionado | não prova condensação real |
-
-```DAX
-Horas em Risco H3 =
-SUMX(
-    FILTER(
-        FactH3Observation,
-        FactH3Observation[risk_level] IN {"High", "Critical"}
-    ),
-    DIVIDE(FactH3Observation[interval_minutes], 60.0)
-)
-
-Margem Mínima H3 (°C) =
-MIN(FactH3Observation[dew_point_margin_c])
-```
 
 `Eventos H3` contínuos não são calculados ainda porque o fato não possui
 `event_id` ou segmentação de episódios. `Cobertura H3` também permanece no
@@ -109,27 +63,10 @@ forçados a zero.
 | Passos de divergência | soma de `valve_command_divergence_steps`, em passos | contexto selecionado | falha/forçamento pode ser intencional |
 | Desvio máximo de sensor | máximo de `maximum_sensor_deviation_liters`, em L | contexto selecionado | valor sintético |
 
-```DAX
-Taxa de Expectativa (%) =
-DIVIDE(
-    CALCULATE(
-        COUNTROWS(FactFaultStudy),
-        FactFaultStudy[expectation_met] = TRUE()
-    ),
-    COUNTROWS(FactFaultStudy)
-)
-
-Passos de Divergência =
-SUM(FactFaultStudy[valve_command_divergence_steps])
-
-Desvio Máximo de Sensor (L) =
-MAX(FactFaultStudy[maximum_sensor_deviation_liters])
-```
-
 `Tags degradadas` e `Passos perdidos` dependem do fato de telemetria temporal,
 que ainda não integra este pacote.
 
-## Snapshot reproduzido em 30/10/2026
+## Snapshot reproduzido em 31/10/2026
 
 | Métrica sintética | Fato curado | Fonte registrada |
 | --- | ---: | ---: |
@@ -156,12 +93,18 @@ casas no fato. A tolerância aceita é `0,001 h`; a fonte permanece preservada e
 .\scripts\New-PortfolioBiDataset.ps1
 .\scripts\Test-PortfolioBiDataset.ps1
 .\scripts\Test-PortfolioBiKpis.ps1
+.\scripts\Test-PortfolioBiMeasures.ps1
 ```
 
-O último comando gera `data\curated\kpi-reconciliation.json` com os hashes das
+O terceiro comando gera `data\curated\kpi-reconciliation.json` com os hashes das
 fontes, valor do fato, valor recalculado na fonte, diferença, tolerância,
 unidade, grão, filtro, classe de evidência e limite interpretativo de cada KPI.
 
-As fórmulas DAX deste documento continuam sendo especificações textuais. A
-sintaxe e o comportamento no modelo semântico só poderão ser declarados
-validados após execução no Power BI Desktop.
+O último comando compara o DAX canônico, o contrato e essa reconciliação e gera
+`data\curated\measure-validation.json`. Essa checagem é estática: sintaxe,
+contexto de filtro e resultados só poderão ser declarados executados após uso
+da DAX Query View no Power BI Desktop.
+
+Para testar o próprio bloqueio estático, execute
+`scripts\Test-PortfolioBiMeasureMutations.ps1`; o roteiro preserva um baseline
+válido e exige a rejeição de dez alterações negativas deliberadas.

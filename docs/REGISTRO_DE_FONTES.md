@@ -1,6 +1,6 @@
 # Registro inicial de fontes
 
-Consulta realizada em 30/10/2026.
+Consultas realizadas em 30 e 31/10/2026.
 
 | Fonte | Tipo | Uso no plano | Limitação |
 | --- | --- | --- | --- |
@@ -10,6 +10,11 @@ Consulta realizada em 30/10/2026.
 | [Microsoft: definir tabelas de data no Desktop](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-date-tables) | documentação oficial | requisitos de unicidade, ausência de nulos e marcação da tabela de datas | a aplicação no Desktop ainda não foi validada neste ambiente |
 | [Microsoft: função CALCULATE em DAX](https://learn.microsoft.com/en-us/dax/calculate-function-dax) | documentação oficial | alteração explícita do contexto de filtro das medidas | a medida ainda precisa ser executada no modelo semântico |
 | [Microsoft: função DIVIDE em DAX](https://learn.microsoft.com/en-us/dax/divide-function-dax) | documentação oficial | cálculo seguro de razões e retorno vazio quando o denominador é zero | não corrige denominador conceitualmente incorreto |
+| [Microsoft: DAX Query View](https://learn.microsoft.com/en-us/power-bi/transform-model/dax-query-view) | documentação oficial | executar medidas query-scoped e, depois da validação, aplicá-las explicitamente ao modelo | `DEFINE MEASURE` não persiste no modelo sem `Update model with changes` |
+| [Microsoft: consultas DAX](https://learn.microsoft.com/en-us/dax/dax-queries) | documentação oficial | contrato `DEFINE` + `EVALUATE` e escopo das medidas de consulta | consulta válida ainda precisa ser executada contra o modelo real |
+| [Microsoft: função ROW em DAX](https://learn.microsoft.com/en-us/dax/row-function-dax) | documentação oficial | retornar os 14 resultados reconciliáveis em uma linha | exige pares nome/expressão e não valida a semântica das medidas |
+| [Microsoft: função KEEPFILTERS em DAX](https://learn.microsoft.com/en-us/dax/keepfilters-function-dax) | documentação oficial | preservar a interseção com filtros existentes nas medidas condicionais | não corrige filtros ou denominadores conceitualmente errados |
+| [Microsoft: função COUNTROWS em DAX](https://learn.microsoft.com/en-us/dax/countrows-function-dax) | documentação oficial | contagem explícita de linhas de fatos e pontes | resultado depende do contexto de filtro do modelo |
 | [Microsoft: incremental refresh](https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview) | documentação oficial | particionamento, atualização incremental e DirectQuery | recursos de tempo real dependem de capacidade |
 | [Microsoft: automatic page refresh](https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-automatic-page-refresh) | documentação oficial | limites de atualização automática | Import não oferece atualização automática de página |
 | [Microsoft: gateway para arquivos locais](https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-desktop-file-local-drive) | documentação oficial | atualização de File/Folder no serviço | requer gateway instalado e disponível |

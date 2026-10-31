@@ -84,6 +84,7 @@ Depois consolide e valide as tabelas:
 .\scripts\New-PortfolioBiDataset.ps1
 .\scripts\Test-PortfolioBiDataset.ps1
 .\scripts\Test-PortfolioBiKpis.ps1
+.\scripts\Test-PortfolioBiMeasures.ps1
 ```
 
 O diretório ignorado `data\curated` conterá onze CSVs e um manifesto com hash
@@ -106,3 +107,11 @@ experimentos pareados e unidades do estudo de falhas. O resultado auditável é
 gravado no diretório ignorado como
 `data\curated\kpi-reconciliation.json`; consulte o
 [catálogo de KPIs](docs/CATALOGO_KPIS.md) para definições e limitações.
+
+O quarto comando valida estaticamente as 14 medidas query-scoped de
+`powerbi\measures\IndustrialMeasures.dax` contra o esquema curado, o contrato de
+medidas e a reconciliação. Ele comprova cobertura, referências, unidades,
+formatos e aliases; não executa DAX nem altera um modelo semântico. O resultado
+fica em `data\curated\measure-validation.json` com hashes e a limitação explícita.
+O teste `scripts\Test-PortfolioBiMeasureMutations.ps1` executa um baseline válido
+e confirma a rejeição de dez mutações de contrato sem tocar nos dados curados.

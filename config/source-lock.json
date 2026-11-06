@@ -7,8 +7,8 @@
       "workspaceDirectory": "h3-monitor",
       "repositoryUrl": "https://github.com/GahbMontoli/h3-climate-reliability-lab.git",
       "publicRef": "origin/main",
-      "commitSha": "d5a42373bb87958b45c6d30fb9792f79316547d7",
-      "verificationLimit": "Os dois CSVs foram reproduzidos byte a byte a partir do commit; continuam sendo dados sintéticos, não evidência de campo."
+      "commitSha": "2ef398540bed2f69a5e608f81e5e4da6d5421194",
+      "verificationLimit": "Os dois CSVs são reproduzíveis com identificadores e horários fixos e possuem manifestos locais com hash; continuam sendo dados sintéticos, não evidência de campo."
     },
     {
       "projectId": "industrial-simulator-3d",
@@ -32,7 +32,7 @@
       "projectId": "h3-monitor",
       "path": "h3-monitor/output/validation/h3-synthetic.csv",
       "role": "h3_observations",
-      "sha256": "fe837d6a5e657627b28e5c836aa30673c9f673bdbbbc9e12f680106dfba3eb3d",
+      "sha256": "dbfe08f93a17cb286770206ffd8f7e91c7a6bc83d79b080bcec1716c857aa5de",
       "evidenceClass": "synthetic",
       "verificationMethod": "reproduced_from_commit"
     },
@@ -40,7 +40,7 @@
       "projectId": "h3-monitor",
       "path": "h3-monitor/output/validation-research/h3-experiment-observations.csv",
       "role": "h3_experiment_observations",
-      "sha256": "d805df824f3ac3edc7cd40a6b4c59f68366b4ca27e7b71ae37f8e517ce7f1d33",
+      "sha256": "66b2949bbcb1d2e337b8ba9b67fc1665c23b303187fbc67372670105ebf87652",
       "evidenceClass": "synthetic",
       "verificationMethod": "reproduced_from_commit"
     },

@@ -78,6 +78,22 @@ Gere também a exportação tabular do Copiloto de Confiabilidade:
 ..\assistente-patinho\Exportar-PowerBI.ps1
 ```
 
+O arquivo versionado `config\source-lock.json` fixa os 10 artefatos consumidos
+a 3 repositórios públicos, commits e hashes SHA-256 específicos. O gerador
+valida esse lock automaticamente antes de criar o pacote. Para executar somente
+o diagnóstico de proveniência:
+
+```powershell
+.\scripts\Test-PortfolioBiSourceLock.ps1
+```
+
+O relatório local fica em
+`data\curated\source-lock-validation.json`. Uma árvore de origem suja é
+registrada para auditoria, mas não invalida por si só um artefato já travado a
+um commit anterior; arquivo, origem, commit ou hash divergente bloqueiam a carga.
+As referências `origin/main` usadas são locais e nenhum `fetch` implícito é
+feito.
+
 Depois consolide e valide as tabelas:
 
 ```powershell
@@ -87,11 +103,13 @@ Depois consolide e valide as tabelas:
 .\scripts\Test-PortfolioBiMeasures.ps1
 ```
 
-O diretório ignorado `data\curated` conterá onze CSVs e um manifesto com hash
-SHA-256 das fontes. Além das quatro tabelas fato, duas pontes e dimensões de
-projeto e ativo, o pacote materializa `DimDate`, `DimEvidence` e `DimSource`.
+O diretório ignorado `data\curated` conterá onze CSVs, um manifesto gerado com
+versão de esquema e relatórios de validação. Além das quatro tabelas fato, duas pontes e dimensões
+de projeto e ativo, o pacote materializa `DimDate`, `DimEvidence` e `DimSource`.
 A dimensão de fonte usa identificadores portáveis, sem publicar caminhos
-absolutos da máquina, e versiona cada origem por seu SHA-256.
+absolutos da máquina, e versiona cada origem por seu SHA-256. O manifesto inclui
+o hash do source lock e, para cada entrada, repositório, commit e método de
+verificação.
 
 O consolidado também confere o manifesto do estudo de falhas, incluindo
 contagem e hashes da cena e do CSV. O pacote atual possui 1.085 linhas de fatos,
@@ -99,6 +117,11 @@ contagem e hashes da cena e do CSV. O pacote atual possui 1.085 linhas de fatos,
 para representar uma planta real. As consultas em `power-query` são fontes M
 textuais auditáveis; elas ainda precisam ser aplicadas e validadas no Power BI
 Desktop antes de existir um PBIP/PBIX validado.
+
+Os artefatos gerados permanecem ignorados nos repositórios de origem: o lock
+publica seus hashes e a revisão associada, não os próprios bytes. Ele também não
+prova qual binário executou o exportador; essa limitação permanece explícita por
+método de verificação.
 
 O terceiro comando reconcilia 14 KPIs e contratos de unidade diretamente entre
 as quatro fontes registradas e os fatos curados. Ele verifica coerência temporal

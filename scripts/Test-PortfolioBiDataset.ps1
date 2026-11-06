@@ -55,8 +55,28 @@ function Assert-PortablePath {
         [System.IO.Path]::IsPathRooted($Path) -or
         $Path -match '^[A-Za-z]:' -or
         $Path.Contains('\') -or
-        @($Path.Split('/') | Where-Object { $_ -eq '..' }).Count -gt 0) {
+        @($Path.Split('/') | Where-Object { $_ -in @('', '.', '..') }).Count -gt 0) {
         throw "Caminho não portável em ${Context}: $Path"
+    }
+}
+
+function Assert-SameSet {
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [object[]]$Actual,
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [object[]]$Expected,
+        [Parameter(Mandatory)]
+        [string]$Context
+    )
+
+    $actualValues = @($Actual | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+    $expectedValues = @($Expected | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+    if ($actualValues.Count -ne $expectedValues.Count -or
+        ($actualValues -join "`n") -cne ($expectedValues -join "`n")) {
+        throw "Conjunto divergente em ${Context}."
     }
 }
 
@@ -82,11 +102,57 @@ if (-not (Test-Path -LiteralPath $ManifestPath -PathType Leaf)) {
     throw "Manifesto ausente: $ManifestPath"
 }
 $Manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
-if ($Manifest.schemaVersion -ne 1) {
+if ($Manifest.schemaVersion -ne 2) {
     throw "Versão de manifesto não suportada: $($Manifest.schemaVersion)"
 }
 if ([string]::IsNullOrWhiteSpace($Manifest.evidenceNotice)) {
     throw 'O manifesto não documenta o limite das evidências.'
+}
+
+$ExpectedSourceLockPath = [System.IO.Path]::GetRelativePath(
+    $WorkspaceRoot,
+    (Join-Path $ProjectRoot 'config\source-lock.json')).Replace('\', '/')
+if ($null -eq $Manifest.sourceLock) {
+    throw 'O manifesto não referencia o source lock.'
+}
+Assert-PortablePath -Path $Manifest.sourceLock.path -Context 'manifest.sourceLock.path'
+if ($Manifest.sourceLock.path -cne $ExpectedSourceLockPath) {
+    throw "Source lock inesperado no manifesto: $($Manifest.sourceLock.path)"
+}
+if ($Manifest.sourceLock.sha256 -cnotmatch '^[0-9a-f]{64}$') {
+    throw 'SHA-256 inválido para o source lock do manifesto.'
+}
+$SourceLockPath = Join-Path $WorkspaceRoot $Manifest.sourceLock.path
+if (-not (Test-Path -LiteralPath $SourceLockPath -PathType Leaf)) {
+    throw "Source lock declarado no manifesto não encontrado: $($Manifest.sourceLock.path)"
+}
+$ActualSourceLockHash = (Get-FileHash -LiteralPath $SourceLockPath -Algorithm SHA256).
+    Hash.ToLowerInvariant()
+if ($ActualSourceLockHash -cne $Manifest.sourceLock.sha256) {
+    throw 'Hash divergente para o source lock declarado no manifesto.'
+}
+$SourceLock = Get-Content -LiteralPath $SourceLockPath -Raw | ConvertFrom-Json
+if ($SourceLock.schemaVersion -ne 1 -or $SourceLock.kind -ne 'portfolio-source-lock') {
+    throw 'Source lock incompatível com o manifesto.'
+}
+$LockedRepositories = @($SourceLock.repositories)
+$LockedArtifacts = @($SourceLock.artifacts)
+if ($LockedRepositories.Count -ne 3 -or $LockedArtifacts.Count -ne 10) {
+    throw 'O source lock deve declarar exatamente três repositórios e dez artefatos.'
+}
+$LockedRepositoryByProject = @{}
+foreach ($repository in $LockedRepositories) {
+    if ($LockedRepositoryByProject.ContainsKey([string]$repository.projectId)) {
+        throw "Projeto duplicado no source lock: $($repository.projectId)"
+    }
+    $LockedRepositoryByProject[[string]$repository.projectId] = $repository
+}
+$LockedArtifactByPath = @{}
+foreach ($artifact in $LockedArtifacts) {
+    if ($LockedArtifactByPath.ContainsKey([string]$artifact.path)) {
+        throw "Artefato duplicado no source lock: $($artifact.path)"
+    }
+    $LockedArtifactByPath[[string]$artifact.path] = $artifact
 }
 
 $ManifestTableNames = @($Manifest.tables.PSObject.Properties.Name)
@@ -99,11 +165,35 @@ foreach ($tableName in $ExpectedTables.Keys) {
     }
 }
 
+$ManifestSources = @($Manifest.sources)
 $ManifestSourcePaths = @()
-foreach ($source in @($Manifest.sources)) {
+foreach ($source in $ManifestSources) {
     Assert-PortablePath -Path $source.path -Context 'manifest.sources.path'
     if ($source.sha256 -notmatch '^[0-9a-f]{64}$') {
         throw "SHA-256 inválido no manifesto para $($source.path)."
+    }
+    if (-not $LockedArtifactByPath.ContainsKey([string]$source.path)) {
+        throw "Fonte do manifesto ausente no source lock: $($source.path)"
+    }
+    $lockedArtifact = $LockedArtifactByPath[[string]$source.path]
+    if (-not $LockedRepositoryByProject.ContainsKey([string]$lockedArtifact.projectId)) {
+        throw "Projeto ausente no source lock para $($source.path)."
+    }
+    $lockedRepository = $LockedRepositoryByProject[[string]$lockedArtifact.projectId]
+    $ExpectedFields = [ordered]@{
+        projectId = [string]$lockedArtifact.projectId
+        repositoryUrl = [string]$lockedRepository.repositoryUrl
+        commitSha = [string]$lockedRepository.commitSha
+        path = [string]$lockedArtifact.path
+        role = [string]$lockedArtifact.role
+        sha256 = [string]$lockedArtifact.sha256
+        evidenceClass = [string]$lockedArtifact.evidenceClass
+        verificationMethod = [string]$lockedArtifact.verificationMethod
+    }
+    foreach ($field in $ExpectedFields.Keys) {
+        if ([string]$source.$field -cne $ExpectedFields[$field]) {
+            throw "Campo $field divergente entre manifesto e source lock para $($source.path)."
+        }
     }
     $ManifestSourcePaths += $source.path
     $resolvedSourcePath = Join-Path $WorkspaceRoot $source.path
@@ -118,6 +208,37 @@ foreach ($source in @($Manifest.sources)) {
 }
 if (@($ManifestSourcePaths | Sort-Object -Unique).Count -ne $ManifestSourcePaths.Count) {
     throw 'O manifesto contém fontes duplicadas.'
+}
+Assert-SameSet -Actual $ManifestSourcePaths -Expected @($LockedArtifacts.path) `
+    -Context 'fontes do manifesto versus source lock'
+
+$ValidationReportName = [string]$Manifest.sourceLock.validationReport
+if ([string]::IsNullOrWhiteSpace($ValidationReportName) -or
+    $ValidationReportName -cne [System.IO.Path]::GetFileName($ValidationReportName) -or
+    $ValidationReportName -match '[\\/]') {
+    throw 'Nome inválido para o relatório de validação do source lock.'
+}
+$SourceLockValidationPath = Join-Path $DataDirectory $ValidationReportName
+& (Join-Path $PSScriptRoot 'Test-PortfolioBiSourceLock.ps1') `
+    -LockPath $SourceLockPath `
+    -OutputPath $SourceLockValidationPath `
+    -ExpectedArtifactPaths $ManifestSourcePaths
+$SourceLockValidation = Get-Content -LiteralPath $SourceLockValidationPath -Raw |
+    ConvertFrom-Json
+if ($SourceLockValidation.schemaVersion -ne 1 -or
+    $SourceLockValidation.status -ne 'valid' -or
+    $SourceLockValidation.lock.sha256 -cne $Manifest.sourceLock.sha256) {
+    throw 'Relatório de validação do source lock incompatível com o manifesto.'
+}
+Assert-SameSet -Actual @($SourceLockValidation.repositories.project_id) `
+    -Expected @($LockedRepositories.projectId) `
+    -Context 'repositórios do relatório versus source lock'
+Assert-SameSet -Actual @($SourceLockValidation.artifacts.path) `
+    -Expected @($LockedArtifacts.path) `
+    -Context 'artefatos do relatório versus source lock'
+if (@($SourceLockValidation.repositories | Where-Object status -ne 'valid').Count -gt 0 -or
+    @($SourceLockValidation.artifacts | Where-Object status -ne 'valid').Count -gt 0) {
+    throw 'O relatório do source lock contém item não validado.'
 }
 
 $Tables = @{}

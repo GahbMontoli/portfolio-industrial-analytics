@@ -10,14 +10,37 @@ Desktop antes de um projeto PBIP/TMDL ser versionado.
 O Power BI Service também exige autenticação com email corporativo ou acadêmico.
 Nenhuma conta, tenant, workspace ou licença foi presumida.
 
+A carga local também possui um source lock versionado: 3 repositórios e 10
+artefatos são verificados por caminho, hash e commit antes da geração. Essa
+checagem usa as referências Git locais e não atualiza remotos automaticamente.
+
 | Camada | Estado comprovado |
 | --- | --- |
+| proveniência das fontes | 3 repositórios e 10 artefatos travados; relatório local auditável |
 | esquema e dados curados | validado localmente por scripts |
 | 14 KPIs | reconciliados fonte↔fato com unidade e tolerância |
 | DAX | contratos, referências, formatos e aliases validados estaticamente |
 | execução DAX no Desktop | não realizada |
 | atualização do modelo semântico | não aplicada |
 | PBIP/TMDL | não criado |
+
+## Validar proveniência antes da carga
+
+```powershell
+.\scripts\Test-PortfolioBiSourceLock.ps1
+.\scripts\New-PortfolioBiDataset.ps1
+```
+
+O segundo comando repete a validação automaticamente e só então gera o
+manifesto curado. `data\curated\source-lock-validation.json` registra o commit
+travado, o HEAD observado e se cada árvore estava limpa. Uma árvore suja é um
+aviso rastreável quando os bytes continuam idênticos ao lock; hash ou commit
+divergente é bloqueio.
+
+Os hashes tornam o snapshot detectável e reproduzível conforme o método
+declarado, mas os artefatos ignorados não passam a ser publicados pelo lock e o
+processo não prova qual binário produziu cada arquivo. Nada nessa etapa executa
+Power Query/DAX no Desktop, cria PBIP/PBIX ou valida um modelo semântico.
 
 ## Criar o projeto
 

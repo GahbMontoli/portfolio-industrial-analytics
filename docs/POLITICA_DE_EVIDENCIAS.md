@@ -48,6 +48,38 @@ Cada estudo do portfólio deve declarar:
 - limitações e ameaças à validade;
 - separação entre conclusão do software e conclusão sobre o mundo real.
 
+## Proveniência dos artefatos locais
+
+O `config/source-lock.json` é a lista versionada das fontes aceitas pela carga
+analítica. O contrato atual cobre exatamente 10 artefatos de 3 repositórios
+públicos e registra caminho portável, SHA-256, classe de evidência, papel,
+repositório, commit e método de verificação.
+
+Antes da consolidação, `scripts/Test-PortfolioBiSourceLock.ps1` deve:
+
+- conferir a bijeção entre o lock e os arquivos efetivamente consumidos;
+- rejeitar origem, commit, caminho, classe de evidência ou hash divergente;
+- confirmar o commit contra a referência local `origin/main`, sem executar
+  `fetch` implicitamente;
+- preservar `synthetic`, `official_raw`, `lab_observed`, `field_observed` e
+  `derived` como classes distintas;
+- registrar, sem ocultar, HEAD atual e estado limpo/sujo de cada árvore.
+
+Uma árvore suja não invalida automaticamente bytes reproduzidos ou travados a
+um commit anterior. O artefato só entra quando seu hash coincide com o lock e o
+commit travado existe e é ancestral da referência pública local; qualquer
+divergência bloqueia a carga. O método de verificação registrado descreve como
+o snapshot foi estabelecido, sujeito aos limites declarados. O resultado local
+é `data/curated/source-lock-validation.json` e não deve ser confundido com dado
+de campo ou validação do Power BI.
+
+A maioria dos arquivos gerados é ignorada nos repositórios de origem. Portanto,
+o lock publica hashes e metadados, não os próprios bytes. Ele identifica o
+snapshot exato revisado, mas não constitui prova criptográfica de qual binário
+executou o exportador. Métodos como `reproduced_from_commit`,
+`manifest_hash_chain`, `git_blob_at_commit` e `validated_export_snapshot` devem
+continuar distintos e acompanhados de suas limitações.
+
 ## Uso de IA
 
 IA pode ajudar a localizar, classificar e resumir fontes, mas DOI, título,

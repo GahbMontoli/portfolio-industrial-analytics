@@ -3,6 +3,7 @@ param(
     [string]$H3Root,
     [string]$SimulatorRoot,
     [string]$CmmsRoot,
+    [string]$SourceLockPath,
     [string]$OutputDirectory
 )
 
@@ -18,6 +19,9 @@ if ([string]::IsNullOrWhiteSpace($SimulatorRoot)) {
 }
 if ([string]::IsNullOrWhiteSpace($CmmsRoot)) {
     $CmmsRoot = Join-Path $WorkspaceRoot 'assistente-patinho'
+}
+if ([string]::IsNullOrWhiteSpace($SourceLockPath)) {
+    $SourceLockPath = Join-Path $ProjectRoot 'config\source-lock.json'
 }
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $ProjectRoot 'data\curated'
@@ -53,7 +57,6 @@ foreach ($source in $Sources) {
     }
 }
 
-New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $IngestedAtUtc = [DateTimeOffset]::UtcNow.ToString('O')
 
 function Get-RelativeSourceLocator {
@@ -66,6 +69,29 @@ function Get-RelativeSourceLocator {
         $WorkspaceRoot,
         [System.IO.Path]::GetFullPath($Path)).Replace('\', '/')
 }
+
+$PortableSources = @($Sources | ForEach-Object { Get-RelativeSourceLocator $_ })
+$SourceLockValidationPath = Join-Path $OutputDirectory 'source-lock-validation.json'
+& (Join-Path $PSScriptRoot 'Test-PortfolioBiSourceLock.ps1') `
+    -LockPath $SourceLockPath `
+    -H3Root $H3Root `
+    -SimulatorRoot $SimulatorRoot `
+    -CmmsRoot $CmmsRoot `
+    -OutputPath $SourceLockValidationPath `
+    -ExpectedArtifactPaths $PortableSources
+
+$SourceLock = Get-Content -LiteralPath $SourceLockPath -Raw | ConvertFrom-Json
+$SourceLockHash = (Get-FileHash -LiteralPath $SourceLockPath -Algorithm SHA256).
+    Hash.ToLowerInvariant()
+$SourceLockArtifactByPath = @{}
+foreach ($artifact in @($SourceLock.artifacts)) {
+    $SourceLockArtifactByPath[$artifact.path] = $artifact
+}
+$SourceLockRepositoryByProject = @{}
+foreach ($repository in @($SourceLock.repositories)) {
+    $SourceLockRepositoryByProject[$repository.projectId] = $repository
+}
+New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 function Get-DateKey {
     param(
@@ -527,13 +553,27 @@ $Outputs.fact_h3_experiment = Export-Table -Rows $H3Experiments -FileName 'fact_
 $Outputs.fact_fault_study = Export-Table -Rows $FaultStudies -FileName 'fact_fault_study.csv'
 
 $Manifest = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     generatedAtUtc = $IngestedAtUtc
     evidenceNotice = 'Todas as linhas deste pacote são sintéticas e validam somente o comportamento dos softwares.'
+    sourceLock = [ordered]@{
+        path = Get-RelativeSourceLocator $SourceLockPath
+        sha256 = $SourceLockHash
+        validationReport = [System.IO.Path]::GetFileName($SourceLockValidationPath)
+    }
     sources = @($Sources | ForEach-Object {
+        $portablePath = Get-RelativeSourceLocator $_
+        $lockedArtifact = $SourceLockArtifactByPath[$portablePath]
+        $lockedRepository = $SourceLockRepositoryByProject[$lockedArtifact.projectId]
         [ordered]@{
-            path = Get-RelativeSourceLocator $_
-            sha256 = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
+            projectId = $lockedArtifact.projectId
+            repositoryUrl = $lockedRepository.repositoryUrl
+            commitSha = $lockedRepository.commitSha
+            path = $portablePath
+            role = $lockedArtifact.role
+            sha256 = $lockedArtifact.sha256
+            evidenceClass = $lockedArtifact.evidenceClass
+            verificationMethod = $lockedArtifact.verificationMethod
         }
     })
     tables = [ordered]@{

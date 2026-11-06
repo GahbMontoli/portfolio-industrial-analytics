@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "kind": "portfolio-source-lock",
+  "repositories": [
+    {
+      "projectId": "h3-monitor",
+      "workspaceDirectory": "h3-monitor",
+      "repositoryUrl": "https://github.com/GahbMontoli/h3-climate-reliability-lab.git",
+      "publicRef": "origin/main",
+      "commitSha": "d5a42373bb87958b45c6d30fb9792f79316547d7",
+      "verificationLimit": "Os dois CSVs foram reproduzidos byte a byte a partir do commit; continuam sendo dados sintéticos, não evidência de campo."
+    },
+    {
+      "projectId": "industrial-simulator-3d",
+      "workspaceDirectory": "simulador-industrial",
+      "repositoryUrl": "https://github.com/GahbMontoli/industrial-simulator-3d.git",
+      "publicRef": "origin/main",
+      "commitSha": "d945392a1601647e376116479cd389251112e56c",
+      "verificationLimit": "O manifesto encadeia cena e CSV; o pacote valida o software sintético e não comprova PLC, rede ou hardware real."
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "workspaceDirectory": "assistente-patinho",
+      "repositoryUrl": "https://github.com/GahbMontoli/copiloto-confiabilidade.git",
+      "publicRef": "origin/main",
+      "commitSha": "fb5780571f04c88b8cf2b248299d235e6b97e97f",
+      "verificationLimit": "O snapshot exportado é sintético e varia com o instante de ingestão; não representa histórico de manutenção real."
+    }
+  ],
+  "artifacts": [
+    {
+      "projectId": "h3-monitor",
+      "path": "h3-monitor/output/validation/h3-synthetic.csv",
+      "role": "h3_observations",
+      "sha256": "fe837d6a5e657627b28e5c836aa30673c9f673bdbbbc9e12f680106dfba3eb3d",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "reproduced_from_commit"
+    },
+    {
+      "projectId": "h3-monitor",
+      "path": "h3-monitor/output/validation-research/h3-experiment-observations.csv",
+      "role": "h3_experiment_observations",
+      "sha256": "d805df824f3ac3edc7cd40a6b4c59f68366b4ca27e7b71ae37f8e517ce7f1d33",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "reproduced_from_commit"
+    },
+    {
+      "projectId": "industrial-simulator-3d",
+      "path": "simulador-industrial/artifacts/fault-study.csv",
+      "role": "fault_study",
+      "sha256": "d729c16af42dcfcfcd292766c8d0d0264f30b4141e30b31008498d2c2d183fb8",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "manifest_hash_chain"
+    },
+    {
+      "projectId": "industrial-simulator-3d",
+      "path": "simulador-industrial/artifacts/fault-study.manifest.json",
+      "role": "fault_study_manifest",
+      "sha256": "715a2594dc878b9257c441e294161871f3aca5cf25839ba6fba4a1237a7bd24a",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/artifacts/power-bi/dim_asset.csv",
+      "role": "cmms_assets",
+      "sha256": "2d4ae75ed042e057a7c1b9be36b0a98915e5146985039026ff20a2993a110979",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_export_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/artifacts/power-bi/fact_work_order.csv",
+      "role": "cmms_work_orders",
+      "sha256": "a42e71dbe2ff6784cf017ed2cdcd8f7fc4b0ea6e323638268a8ffcd99316106e",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_export_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/artifacts/power-bi/bridge_work_order_check.csv",
+      "role": "cmms_work_order_checks",
+      "sha256": "2d8bc1447b53411f00ed3ac0b610ce688c0beda5357a943fd1eb7512d49e373a",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_export_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/artifacts/power-bi/bridge_work_order_part.csv",
+      "role": "cmms_work_order_parts",
+      "sha256": "b596a97c5e8d6f1f105b094daf4415c282ed33fcd6f2d3509dccfdd6636bf665",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_export_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/artifacts/power-bi/manifest.json",
+      "role": "cmms_export_manifest",
+      "sha256": "0af987aac3d382975703a4883c7e78fd7241cdbe3f2d95ff993f43d2cbf921a1",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "validated_export_snapshot"
+    },
+    {
+      "projectId": "copiloto-confiabilidade",
+      "path": "assistente-patinho/src/AssistentePatinho.App/sample-cmms-data.json",
+      "role": "cmms_source_fixture",
+      "sha256": "59de9465aa10db5c1d269b65757e14ab584dc1673ab510044256b39b242c7f06",
+      "evidenceClass": "synthetic",
+      "verificationMethod": "git_blob_at_commit"
+    }
+  ]
+}

@@ -7,8 +7,8 @@
       "workspaceDirectory": "h3-monitor",
       "repositoryUrl": "https://github.com/GahbMontoli/h3-climate-reliability-lab.git",
       "publicRef": "origin/main",
-      "commitSha": "2ef398540bed2f69a5e608f81e5e4da6d5421194",
-      "verificationLimit": "Os dois CSVs são reproduzíveis com identificadores e horários fixos e possuem manifestos locais com hash; continuam sendo dados sintéticos, não evidência de campo."
+      "commitSha": "ae84e22dec9812f48236025fb3c2d3772deed3df",
+      "verificationLimit": "Os dois CSVs são reproduzíveis com identificadores e horários fixos; seus manifestos verificam caminho, linhas, tamanho e SHA-256. Continuam sendo dados sintéticos, não evidência de campo."
     },
     {
       "projectId": "industrial-simulator-3d",

@@ -23,7 +23,7 @@
       "workspaceDirectory": "assistente-patinho",
       "repositoryUrl": "https://github.com/GahbMontoli/copiloto-confiabilidade.git",
       "publicRef": "origin/main",
-      "commitSha": "fb5780571f04c88b8cf2b248299d235e6b97e97f",
+      "commitSha": "f0966066f6ead05f269bb2e312cf656621bd52f2",
       "verificationLimit": "O snapshot exportado é sintético e varia com o instante de ingestão; não representa histórico de manutenção real."
     }
   ],
@@ -72,7 +72,7 @@
       "projectId": "copiloto-confiabilidade",
       "path": "assistente-patinho/artifacts/power-bi/fact_work_order.csv",
       "role": "cmms_work_orders",
-      "sha256": "a42e71dbe2ff6784cf017ed2cdcd8f7fc4b0ea6e323638268a8ffcd99316106e",
+      "sha256": "6d4f87d89f8cd9cd7f2c2bfac7be91fff7e789de77502239ae6a01ab5de01ff3",
       "evidenceClass": "synthetic",
       "verificationMethod": "validated_export_snapshot"
     },
@@ -80,7 +80,7 @@
       "projectId": "copiloto-confiabilidade",
       "path": "assistente-patinho/artifacts/power-bi/bridge_work_order_check.csv",
       "role": "cmms_work_order_checks",
-      "sha256": "2d8bc1447b53411f00ed3ac0b610ce688c0beda5357a943fd1eb7512d49e373a",
+      "sha256": "a2cf4b913496fef19e9488ba4a14575dbef5b81467dc2040e4614668f65a5f19",
       "evidenceClass": "synthetic",
       "verificationMethod": "validated_export_snapshot"
     },
@@ -88,7 +88,7 @@
       "projectId": "copiloto-confiabilidade",
       "path": "assistente-patinho/artifacts/power-bi/bridge_work_order_part.csv",
       "role": "cmms_work_order_parts",
-      "sha256": "b596a97c5e8d6f1f105b094daf4415c282ed33fcd6f2d3509dccfdd6636bf665",
+      "sha256": "f1557ba00d49b7682b34e457275e1cd8aecd2220895c942d47f65e2d3f1980cc",
       "evidenceClass": "synthetic",
       "verificationMethod": "validated_export_snapshot"
     },
@@ -96,7 +96,7 @@
       "projectId": "copiloto-confiabilidade",
       "path": "assistente-patinho/artifacts/power-bi/manifest.json",
       "role": "cmms_export_manifest",
-      "sha256": "0af987aac3d382975703a4883c7e78fd7241cdbe3f2d95ff993f43d2cbf921a1",
+      "sha256": "3528bf5122b18c5d973ef45f64169ad1b81a73eb78bf2733e1caa98a664180fa",
       "evidenceClass": "synthetic",
       "verificationMethod": "validated_export_snapshot"
     },
